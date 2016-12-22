@@ -97,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
     */
     public void scan(View v){
 
+        progressDialog.show();
         startScan();
 
     }
@@ -135,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
 
-                progressDialog.show();
+
                 //Add contacts
                 addContacts();
 
