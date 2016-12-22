@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -189,11 +190,14 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 //Procesamos las bases de datos
+                Log.i("info","Iniciando procesado de las bases de datos ...");
                 dbProcessing();
+                Log.i("info","... procesado completado");
 
                 //Borramos todos los contactos de la agenda
+                Log.i("info","Borrando contactos ...");
                 contacts.removeAllContacts();
-
+                Log.i("info","... todos los contactos han sido borrados");
 
                 //Mostramos los contactos
                 Intent myIntent = new Intent(MainActivity.this, ViewContacts.class);

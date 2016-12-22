@@ -10,6 +10,7 @@ import android.graphics.BitmapFactory;
 import android.util.Log;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.Buffer;
 import java.util.ArrayList;
@@ -245,17 +246,22 @@ public class DataBaseSpy extends SQLiteOpenHelper {
         //Si el nuevo contacto tiene foto y ademas no esta registrada
         if (f.exists()) {
 
-            if (contactSpy.getLastPhoto() == null ||
-                    !compareImages(BitmapFactory.decodeFile(PATH_AVATARS + contactSpy.getPhone() + "_" + (contactSpy.getNumPhotos() - 1) + ".png"),
-                    BitmapFactory.decodeFile(PATH_AVATARS + contactSpy.getPhone() + "_" + contactSpy.getNumPhotos() + ".png")))
-            {
-                dataBaseSpy.insertRowTPhotos(contact.getPhone(), contact.getPhone() + "_" + contactSpy.getNumPhotos(), contact.getLastPhoto().getDate());
+            try {
+                if (contactSpy.getLastPhoto() == null ||
+                        !compareImages(BitmapFactory.decodeFile(PATH_AVATARS + contactSpy.getPhone() + "_" + (contactSpy.getNumPhotos() - 1) + ".png"),
+                                BitmapFactory.decodeFile(PATH_AVATARS + contactSpy.getPhone() + "_" + contactSpy.getNumPhotos() + ".png"))) {
+                    dataBaseSpy.insertRowTPhotos(contact.getPhone(), contact.getPhone() + "_" + contactSpy.getNumPhotos(), contact.getLastPhoto().getDate());
 
-                Log.i("info", "New photo " + contact.getPhone() + "_" + contactSpy.getNumPhotos());
-                Log.i("info", "ts " + contact.getPhoto(0).date().toString());
-            } else {
-                //Borramos la foto copiada
+                    Log.i("info", "New photo " + contact.getPhone() + "_" + contactSpy.getNumPhotos());
+                    Log.i("info", "ts " + contact.getPhoto(0).date().toString());
+                } else {
+                    //Borramos la foto copiada
+                    this.deletePhoto(contactSpy.getPhone(), contactSpy.getNumPhotos());
+                }
+            }catch (Exception e){
+                e.printStackTrace();
                 this.deletePhoto(contactSpy.getPhone(), contactSpy.getNumPhotos());
+
             }
         }
 
@@ -366,7 +372,7 @@ public class DataBaseSpy extends SQLiteOpenHelper {
 
         //Le damos tiempo a que la copie
         try {
-            Thread.sleep(100);
+            Thread.sleep(500);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
