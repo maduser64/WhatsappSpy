@@ -28,6 +28,12 @@ public class MainActivity extends AppCompatActivity {
     private  EditText editTextFrom;
     private EditText editTextTo;
 
+
+    //Manejador para la progressBar de la conexion
+    private Handler puenteProgress;
+    private ProgressDialog progressDialog;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,6 +64,31 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+        setupProgressBar();
+
+
+    }
+
+    private void setupProgressBar(){
+
+
+        puenteProgress = new Handler() {
+
+            @Override
+            public void handleMessage(Message msg) {
+
+                int progreso = (Integer)msg.obj;
+                progressDialog.setProgress(progreso);
+
+            }
+        };
+
+        progressDialog = new ProgressDialog(MainActivity.this);
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        progressDialog.setMessage("Conectando ...");
+        progressDialog.setMax(100);
+        progressDialog.setProgress(0);
+        progressDialog.setCancelable(false);
 
     }
 
@@ -70,6 +101,8 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
+
     /*
         inicializacion del hilo para escanear los contactos
      */
@@ -79,32 +112,7 @@ public class MainActivity extends AppCompatActivity {
 
         new Thread(new Runnable() {
 
-            //Manejador para la progressBar de la conexion
-            private Handler puenteProgress;
-            private ProgressDialog progressDialog;
 
-            private void setupProgressBar(){
-
-
-                puenteProgress = new Handler() {
-
-                    @Override
-                    public void handleMessage(Message msg) {
-
-                        int progreso = (Integer)msg.obj;
-                        progressDialog.setProgress(progreso);
-
-                    }
-                };
-
-                progressDialog = new ProgressDialog(MainActivity.this);
-                progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                progressDialog.setMessage("Conectando ...");
-                progressDialog.setMax(100);
-                progressDialog.setProgress(0);
-                progressDialog.setCancelable(false);
-
-            }
 
             private void addContacts(){
 
@@ -127,7 +135,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
 
-                setupProgressBar();
                 progressDialog.show();
                 //Add contacts
                 addContacts();
