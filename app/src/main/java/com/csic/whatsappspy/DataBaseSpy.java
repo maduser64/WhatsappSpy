@@ -15,7 +15,7 @@ import java.nio.Buffer;
 import java.util.ArrayList;
 
 /**
- * Created by martam on 16/11/2016.
+ * Controla la lectura y escritura de contactos , fotos y estados en nuestra base de datos
  */
 public class DataBaseSpy extends SQLiteOpenHelper {
     private Context context;
@@ -68,7 +68,7 @@ public class DataBaseSpy extends SQLiteOpenHelper {
     }
 
     //insertRows en cada una de las tablas
-    public void insertRowTPhotos(long number, String photo_path, long photo_ts){
+    private void insertRowTPhotos(long number, String photo_path, long photo_ts){
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(ConstantsDB.TABLE_NUMBER, "00" + number);
@@ -78,7 +78,7 @@ public class DataBaseSpy extends SQLiteOpenHelper {
         db.close();
     }
 
-    public void insertRowTContacts(long number){
+    private void insertRowTContacts(long number){
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(ConstantsDB.TABLE_NUMBER, "00" + number);
@@ -86,7 +86,7 @@ public class DataBaseSpy extends SQLiteOpenHelper {
         db.close();
     }
 
-    public void insertRowTStatus(long number, String status, long status_ts) {
+    private void insertRowTStatus(long number, String status, long status_ts) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(ConstantsDB.TABLE_NUMBER, "00" + number);
@@ -97,101 +97,106 @@ public class DataBaseSpy extends SQLiteOpenHelper {
     }
 
 
-
-
-
+    /*
+        Lee un contacto de la base de datos y lo devuelve como cursor
+     */
     private Cursor read(long number, String table, String[] fields){ //el array fields son los campos de los que se hace select
         //Se establecen permisos de lectura
         SQLiteDatabase dbSpy = this.getReadableDatabase();
 
-        //Cláusula WHERE para buscar por producto
+        //Cláusula WHERE para buscar por numero
         String where = "number LIKE '00" + number + "'";
-      //  System.out.println("where: " + where);
 
+        //Ejecuta la consulta
 
-        //Ejecuta la sentencia devolviendo los resultados de los parámetros pasados de tabla, columnas, producto y orden de los resultados obtenidos.
-        Cursor cursor = dbSpy.query(table, fields, where ,null, null, null, null);
-
-        return cursor;
+        return dbSpy.query(table, fields, where ,null, null, null, null);
     }
 
     /**
-     * @param //name
-     * @return
+     * Lee un contacto de la base de datos por su numero de telefono
      */
-
-
-
     public Contact getContact(long number){
-        Contact contact = null;
 
         DataBaseSpy dataBaseSpy = new DataBaseSpy(this.context);
         dataBaseSpy.getReadableDatabase();
 
-        contact = getContactPrivate(number,dataBaseSpy);
+        Contact contact = getContactPrivate(number,dataBaseSpy);
 
         dataBaseSpy.close();
         return contact;
     }
 
 
+    /*
+        Lee un contacto de la base de datos por el numero de telefono
+     */
     private Contact getContactPrivate(long number, DataBaseSpy dataBaseSpy){ //lee la base de datos Spy crea los contactos y eventos
         Contact contact = null;
-        Event event_status = null;
-        Event event_photo = null;
 
+        //Campos a obtener de la tabla contactos
         String[] fields_contacts = {ConstantsDB.TABLE_ID, ConstantsDB.TABLE_NUMBER};
         Cursor cursor_contactos = dataBaseSpy.read(number, ConstantsDB.TABLE_SPY_CONTACTS, fields_contacts);
-        int size = cursor_contactos.getCount();
+
+        if(cursor_contactos != null) {
+            int size = cursor_contactos.getCount();
+
+            if (size > 0) {//hay algun contacto?
+
+                //cursor de estados
+                String[] fields_status = {ConstantsDB.TABLE_ID, ConstantsDB.TABLE_NUMBER, ConstantsDB.TABLE_SPY_STATUS_STATUS, ConstantsDB.TABLE_SPY_STATUS_STATUS_TS};
+                Cursor cursor_status = dataBaseSpy.read(number, ConstantsDB.TABLE_SPY_STATUS, fields_status);
+
+                //Cursor de fotos
+                String[] fields_photo = {ConstantsDB.TABLE_ID, ConstantsDB.TABLE_NUMBER, ConstantsDB.TABLE_SPY_PHOTOS_PATH, ConstantsDB.TABLE_SPY_PHOTOS_PHOTO_TS};
+                Cursor cursor_photos = dataBaseSpy.read(number, ConstantsDB.TABLE_SPY_PHOTOS, fields_photo);
+
+                //Creamos un objeto contacto con el numero buscado
+                contact = new Contact("00" + number, number);
+
+                //Añadimos los estados que tenga
+                if(cursor_status != null) {
+                    int size_status = cursor_status.getCount();
+                    while (cursor_status.getPosition() < (size_status - 1)) {
+
+                        cursor_status.moveToNext();
+                        contact.addStatus(cursor_status.getString(2), cursor_status.getLong(3));
 
 
+                    }
+                    cursor_status.close();
+                }
+
+                //Añadimos la fotos que tenga
+                if(cursor_photos != null) {
+                    int size_photos = cursor_photos.getCount();
+                    while (cursor_photos.getPosition() < (size_photos - 1)) {
+
+                        cursor_photos.moveToNext();
+                        contact.addPhoto(cursor_photos.getString(2), cursor_photos.getLong(3));
+                    }
 
 
-        if (size > 0) {
-
-            String[] fields_status = {ConstantsDB.TABLE_ID, ConstantsDB.TABLE_NUMBER, ConstantsDB.TABLE_SPY_STATUS_STATUS, ConstantsDB.TABLE_SPY_STATUS_STATUS_TS};
-            Cursor cursor_status = dataBaseSpy.read(number, ConstantsDB.TABLE_SPY_STATUS, fields_status); //leer todos los estados de un numero
-
-            int size_status = cursor_status.getCount();
-
-            String[] fields_photo = {ConstantsDB.TABLE_ID, ConstantsDB.TABLE_NUMBER, ConstantsDB.TABLE_SPY_PHOTOS_PATH, ConstantsDB.TABLE_SPY_PHOTOS_PHOTO_TS};
-            Cursor cursor_photos = dataBaseSpy.read(number, ConstantsDB.TABLE_SPY_PHOTOS,fields_photo); //leer todos los fotos de un numero
-            int size_photos =cursor_photos.getCount();
-
-            contact = new Contact("00" + number, number);
-
-
-            while (cursor_status.getPosition() < (size_status -1)) {
-
-                cursor_status.moveToNext();
-                contact.addStatus(cursor_status.getString(2), cursor_status.getLong(3));
-
-
+                    cursor_photos.close();
+                }
+                cursor_contactos.close();
             }
 
-            while (cursor_photos.getPosition() < (size_photos -1)) {
-
-                cursor_photos.moveToNext();
-                contact.addPhoto(cursor_photos.getString(2), cursor_photos.getLong(3));
-            }
-
-            cursor_status.close();
-            cursor_photos.close();
         }
-        cursor_contactos.close();
 
         return contact;
 
     }
 
-    //para leer base de datos spy y usarlo para la vista
+    /*
+        Lista de todos los contactos de nuestra base de datos dentro del rango de telefonos dados
+     */
     public ArrayList<Contact> readContact(long from, long to){
-        ArrayList<Contact> contacts_list = new ArrayList<Contact>();
+        ArrayList<Contact> contacts_list = new ArrayList<>();
         DataBaseSpy dataBaseSpy = new DataBaseSpy(this.context);
         dataBaseSpy.getReadableDatabase();
-        Contact contact;
+
         for (long i = from;i <= to; i++){
-            contact = getContactPrivate(i,dataBaseSpy);
+            Contact contact = getContactPrivate(i,dataBaseSpy);
 
             if(contact != null){ contacts_list.add(contact);}
 
@@ -201,20 +206,23 @@ public class DataBaseSpy extends SQLiteOpenHelper {
         return contacts_list;
     }
 
+    /*
+        Por cada numero en la base de datos de whatsapp cera un contacto en nuestra base de datos,
+        si este no existe y registra sus nuevas fotos y estados
+     */
     private void writeContact2(Contact contact,DataBaseSpy dataBaseSpy) {
 
-        Contact contactSpy = getContact(contact.getPhone());   //Contacto Spy si existe
+        Contact contactSpy = getContact(contact.getPhone());   //Contacto Spy
 
-        if(contactSpy == null){//Si no existe lo meto en la DDBB
+        //Si el contacto no esta registrado en nuestra base de datos
+        if(contactSpy == null){
             //crear row en spy_contact (id + number)
             dataBaseSpy.insertRowTContacts(contact.getPhone());
             contactSpy = new Contact(contact.getPhone() + "" ,contact.getPhone());
+            Log.i("info", "New contact " + contact.getName());
         }
 
         //Si no tiene stado o el nuevo es distinto
-
-     //   System.out.println("El estado es de " + contact.getPhone() + ": " + contact.getLastStatus().getEvent());
-
         if (contact.getLastStatus() != null && (contactSpy.getLastStatus() == null || !contactSpy.getLastStatus().getEvent().equals(contact.getLastStatus().getEvent()))){
 
             dataBaseSpy.insertRowTStatus(contact.getPhone(), contact.getLastStatus().getEvent(), contact.getLastStatus().getDate());
@@ -256,7 +264,6 @@ public class DataBaseSpy extends SQLiteOpenHelper {
     /**
      * Introduce un contacto en la base de datos. Si ya existe, solo introduce la foto y el estado
      * si son nuevos
-     * @param contact
      */
 
 
@@ -280,7 +287,7 @@ public class DataBaseSpy extends SQLiteOpenHelper {
 
                 Log.i("info", "equalPhoto: " + equalPhoto);
 
-                if(equalPhoto == true){
+                if(equalPhoto){
                     deletePhoto( contactSpy.getPhone(), contactSpy.getNumPhotos());
                     Log.i("info", "Deleting " + contactSpy.getPhone() + "_" + contactSpy.getNumPhotos() + ".png");
                 }
@@ -337,6 +344,9 @@ public class DataBaseSpy extends SQLiteOpenHelper {
         }
 
 
+    /*
+        Copia la foto de un contacto de whatsapp a nuesto sistema de ficheros
+     */
     private void copyPhoto(long phone,String photoSpy){
 
        // final String PREF_ESP = "34";
@@ -354,13 +364,17 @@ public class DataBaseSpy extends SQLiteOpenHelper {
             Log.i("info", "No se ha copiado " + PATH_AVATARS + photoSpy );
         }
 
+        //Le damos tiempo a que la copie
         try {
-            Thread.sleep(500);
+            Thread.sleep(100);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
 
+    /*
+        Borra una foto de un contacto en nuestro sistema de ficheros
+     */
     private  void  deletePhoto(long phone, int numPhonto) {
         try {
             Process p = Runtime.getRuntime().exec(new String[]{"su","-c", "rm " + PATH_AVATARS + phone + "_" + numPhonto});
@@ -370,7 +384,6 @@ public class DataBaseSpy extends SQLiteOpenHelper {
 
     /**
      * Introduce una lista de contactos en la base de datos
-     * @param list
      */
     public void writeContact(ArrayList<Contact> list){
         DataBaseSpy dataBaseSpy = new DataBaseSpy(this.context);
@@ -384,8 +397,6 @@ public class DataBaseSpy extends SQLiteOpenHelper {
 
     /**
      * Compare two images.
-     * @param bitmap1
-     * @param bitmap2
      * @return true iff both images have the same dimensions and pixel values.
      */
     public static boolean compareImages(Bitmap bitmap1, Bitmap bitmap2) {

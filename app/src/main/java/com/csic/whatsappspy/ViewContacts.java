@@ -9,6 +9,9 @@ import android.support.v7.widget.RecyclerView;
 import java.util.ArrayList;
 
 
+/*
+    Muestra una lista de contactos escaneados
+ */
 public class ViewContacts extends AppCompatActivity {
 
     private final String PATH_DATA_BASE = "/storage/sdcard0/Download/com.whatsapp/files/Avatars/";
@@ -27,7 +30,7 @@ public class ViewContacts extends AppCompatActivity {
             long from =  Long.parseLong(bundle.getString("from"));
             long to =  Long.parseLong(bundle.getString("to"));
 
-            this.contactArrayList = new ArrayList<Contact>();
+            this.contactArrayList = new ArrayList<>();
 
             contactsList = (RecyclerView) findViewById(R.id.contactsRV);
             LinearLayoutManager llm = new LinearLayoutManager(this);
@@ -70,47 +73,12 @@ public class ViewContacts extends AppCompatActivity {
      */
     private void inicializar(long from, long to){
 
-        //int from = b;
-        //int to = 680260442;
-
         ArrayList<Contact> lista;
-
-
         DataBaseSpy dataBaseSpy = new DataBaseSpy(getApplicationContext());
-
         lista = dataBaseSpy.readContact(from,to);
-
         dataBaseSpy.close();
 
         this.contactArrayList.addAll(lista);
-        /*
-        //Creo contactos de prueba para la lista
-        Contact c = new Contact("1",1);
-        this.contactArrayList.add(c);
-        c = new Contact("2",2);
-        this.contactArrayList.add(c);
-        c = new Contact("3",3);
-        this.contactArrayList.add(c);
-        c = new Contact("4",4);
-        this.contactArrayList.add(c);
-        c = new Contact("5",5);
-        this.contactArrayList.add(c);
-        c = new Contact("6",6);
-        this.contactArrayList.add(c);
-        c = new Contact("7",7);
-        this.contactArrayList.add(c);
-        c = new Contact("8",8);
-        this.contactArrayList.add(c);
-        c = new Contact("9",9);
-        this.contactArrayList.add(c);
-
-        */
-
-
-
     }
-
-
-
 
 }

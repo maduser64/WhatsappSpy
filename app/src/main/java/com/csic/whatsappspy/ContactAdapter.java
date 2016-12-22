@@ -55,13 +55,11 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactV
         }
 
         contactViewHolder.name.setText(contact.getName());
-//        contactViewHolder.phone.setText(contact.getPhone() + "");
     }
 
 
     /**
      * Num of elements
-     * @return
      */
     @Override
     public int getItemCount() {

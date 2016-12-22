@@ -4,12 +4,12 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 
 /**
- * Created by martam on 16/11/2016.
+ *
+ * Controlador de la base de datos de whatsapp
  */
 public class DataBaseWa extends SQLiteOpenHelper {
     private Context context;
@@ -37,7 +37,10 @@ public class DataBaseWa extends SQLiteOpenHelper {
     }
 
 
-    public Cursor read(long number){
+    /*
+        Lee un numero y lo devuelve en forma de cursor
+     */
+    private Cursor read(long number){
         //Se establecen permisos de lectura
         SQLiteDatabase dbWa = this.getReadableDatabase();
         //Columnas que devolverá la consulta.
@@ -50,28 +53,23 @@ public class DataBaseWa extends SQLiteOpenHelper {
 
         };
 
-        //Cláusula WHERE para buscar por producto
+        //Cláusula WHERE para buscar por numero
 
         String where = "number" + " LIKE "+ "'" + "00" + number + "'";
 
-
-        //Ejecuta la sentencia devolviendo los resultados de los parámetros pasados de tabla, columnas, producto y orden de los resultados obtenidos.
-        Cursor cursor = dbWa.query(ConstantsDB.TABLE_WA_CONTACTS, fields, where ,null, null, null, null);
-
-        if (cursor != null) {
-            cursor.moveToFirst();
-
-        }
-        return cursor;
+        //Ejecutamos la consulta
+        return dbWa.query(ConstantsDB.TABLE_WA_CONTACTS, fields, where ,null, null, null, null);
     }
 
+    /*
+        Lee en contacto con el numero indicado de la base de datos
+     */
     public Contact readContact(long number){
-        Contact contact = null;
 
         DataBaseWa dbWa = new DataBaseWa(this.context);
         dbWa.getReadableDatabase();
 
-        contact = readContactPrivate(number,dbWa);
+        Contact contact = readContactPrivate(number,dbWa);
 
         dbWa.close();
         return contact;
@@ -79,38 +77,44 @@ public class DataBaseWa extends SQLiteOpenHelper {
 
     private Contact readContactPrivate(long number,DataBaseWa dbWa){ // pasar las row de wa a tipo contactos/eventos
         Contact contact = null;
-        Event event_status = null;
-        Event event_photo = null;
 
         Cursor cursor = dbWa.read(number);
-        int index = cursor.getCount();
 
-        if (index > 0) {
+        //Si el numero existe
+        if (cursor != null) {
+            cursor.moveToFirst();
+            int index = cursor.getCount();
 
-            if (cursor.getInt(4) != 0) {//Es usuario de whatsapp?
+            if (index > 0) {
 
-                contact = new Contact("00" + number, number);
-                String status = cursor.getString(1);
-                if (status!=null)
-                    contact.addStatus(cursor.getString(1), cursor.getLong(2));
+                if (cursor.getInt(4) != 0) {//Es usuario de whatsapp?
 
-                contact.addPhoto("00" + number, cursor.getLong(3) );
+                    contact = new Contact("00" + number, number);
+                    String status = cursor.getString(1);
+                    if (status != null)
+                        contact.addStatus(cursor.getString(1), cursor.getLong(2));
 
+                    contact.addPhoto("00" + number, cursor.getLong(3));
+
+                }
             }
+            cursor.close();
         }
 
-        cursor.close();
         return contact;
     }
 
+    /*
+        Lista de todos los contactos en un rango de numeros
+     */
     public ArrayList<Contact> readContact(long from,long to){
 
         DataBaseWa dbWa = new DataBaseWa(this.context);
         dbWa.getReadableDatabase();
-        ArrayList<Contact> list = new ArrayList<Contact>();
-        Contact contact = null;
+        ArrayList<Contact> list = new ArrayList<>();
+
         for (long i = from; i <= to; i++){
-            contact = readContactPrivate(i,dbWa);
+            Contact contact = readContactPrivate(i,dbWa);
             if(contact != null)
                 list.add(contact);
         }

@@ -15,15 +15,18 @@ import android.widget.Toast;
 import java.io.IOException;
 import java.util.ArrayList;
 
+/*
+    Activity principal de la aplicacion
+ */
 public class MainActivity extends AppCompatActivity {
 
-    //Manejador para la progressBar de la conexion
-    private Handler puenteProgress;
+
+    //Para el manejo de la agenda de contactos
     private PhoneBook contacts;
-    private ProgressDialog progressDialog;
+
+    //Campos de texto del rango de telefonos a escanear
     private  EditText editTextFrom;
     private EditText editTextTo;
-    private Thread scan;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,60 +41,70 @@ public class MainActivity extends AppCompatActivity {
 
         contacts = new PhoneBook(this);
 
+         //Obligamos a la creacion de la base de datos
+
         DataBaseSpy dataBaseSpy = new DataBaseSpy(getApplicationContext());
         dataBaseSpy.getWritableDatabase();
 
         dataBaseSpy.close();
 
-        //aceptar superuser
+        //optenemos permisos superusuario
 
         try {
 
             Process p = Runtime.getRuntime().exec(new String[]{"su","-c","su root"});
 
-            Toast.makeText(getApplicationContext(), "Acepta root access", Toast.LENGTH_LONG).show();
-
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        setupProgressBar();
-        //setup();
-
-        //Crear directorios
-
-
 
     }
 
-    public void setupProgressBar(){
+    /*
+    ocClick del botos scan
+    */
+    public void scan(View v){
 
-
-        puenteProgress = new Handler() {
-
-            @Override
-            public void handleMessage(Message msg) {
-
-                int progreso = (Integer)msg.obj;
-                progressDialog.setProgress(progreso);
-
-            }
-        };
-
-        progressDialog = new ProgressDialog(MainActivity.this);
-        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        progressDialog.setMessage("Conectando ...");
-        progressDialog.setMax(100);
-        progressDialog.setProgress(0);
-        progressDialog.setCancelable(false);
+        startScan();
 
     }
 
-    private void setupThread(){
+    /*
+        inicializacion del hilo para escanear los contactos
+     */
+    private void startScan(){
+
 
 
         new Thread(new Runnable() {
 
+            //Manejador para la progressBar de la conexion
+            private Handler puenteProgress;
+            private ProgressDialog progressDialog;
+
+            private void setupProgressBar(){
+
+
+                puenteProgress = new Handler() {
+
+                    @Override
+                    public void handleMessage(Message msg) {
+
+                        int progreso = (Integer)msg.obj;
+                        progressDialog.setProgress(progreso);
+
+                    }
+                };
+
+                progressDialog = new ProgressDialog(MainActivity.this);
+                progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                progressDialog.setMessage("Conectando ...");
+                progressDialog.setMax(100);
+                progressDialog.setProgress(0);
+                progressDialog.setCancelable(false);
+
+            }
 
             private void addContacts(){
 
@@ -100,151 +113,92 @@ public class MainActivity extends AppCompatActivity {
                 long to =  Long.parseLong(editTextTo.getText().toString());
 
                 while(from <= to){
-                  //  System.out.println(from);
+
+                    //Creamos los contactos, se añade el 00 delante para el prefijo del pais
                     contacts.createContact("00" + from , "00" + from);
                     from ++;
 
-                // System.out.println(from);
                     Message msg = new Message();
                     msg.obj = 10;
                     puenteProgress.sendMessage(msg);
                 }
             }
-
-            private void deleteContacts(){
-
-                long from =  Long.parseLong(editTextFrom.getText().toString());
-                long to =  Long.parseLong(editTextTo.getText().toString());
-
-
-                while(from <= to){
-
-                    contacts.deleteContact("00" + from , "00" + from);
-                    from ++;
-
-                    Message msg = new Message();
-                    msg.obj = 10;
-                    puenteProgress.sendMessage(msg);
-                }
-            }
-
 
             @Override
             public void run() {
 
-
-                //Delete everything before?
+                setupProgressBar();
+                progressDialog.show();
                 //Add contacts
                 addContacts();
-                //deleteContacts();
 
                 //Números móviles: comienzan por 6, 71, 72, 73 y 74.
-
 
                 /*
                     Reset whatsapp APP
                  */
+                //ActivityManager am = (ActivityManager)getSystemService(Context.ACTIVITY_SERVICE);
+                //am.restartPackage("com.whatsapp");
 
-                ActivityManager am = (ActivityManager)getSystemService(Context.ACTIVITY_SERVICE);
-                am.restartPackage("com.whatsapp");
-
+                //Esperamos a que el reset se realice completamenet
                 try {
                     Thread.sleep(3000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
 
-
+                //Lanzamos whatsapp para poder descargar las fotos de los contactos escaneados
                 Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.whatsapp");
-                    if (launchIntent != null) {startActivity(launchIntent);//null pointer check in case package name was not found
-                }
-                //Toast.makeText(getApplicationContext(), "Debes hacer scroll para cargar las fotos", Toast.LENGTH_LONG).show();
-
-                //Wait
-                try {
-                    Thread.sleep(3000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-
+                    if (launchIntent != null)
+                        startActivity(launchIntent);
 
                 progressDialog.cancel();
-
             }
         }).start();
 
     }
 
+
+    /*
+        onClick del boton viewContact para visualizar los contactos en el rango de telefonos establecido
+     */
     public void viewContacts(View v){
-
-        puenteProgress = new Handler() {
-
-            @Override
-            public void handleMessage(Message msg) {
-
-                int progreso = (Integer)msg.obj;
-                progressDialog.setProgress(progreso);
-
-            }
-        };
-
-        progressDialog = new ProgressDialog(MainActivity.this);
-        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        progressDialog.setMessage("Conectando ...");
-        progressDialog.setMax(100);
-        progressDialog.setProgress(0);
-        progressDialog.setCancelable(false);
 
         new Thread(new Runnable() {
 
             @Override
             public void run() {
 
-              //  progressDialog.show();
+                //Reseteamos whatsapp para que su base de datos se actualice
                 ActivityManager am = (ActivityManager)getSystemService(Context.ACTIVITY_SERVICE);
                 am.restartPackage("com.whatsapp");
 
-                //Wait
+                //le damos tiempo a whatsapp para que se restaure y actualice sus bases de datos
                 try {
                     Thread.sleep(3000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
 
-                //Process the data base (se copian los avatars)
+                //Procesamos las bases de datos
                 dbProcessing();
 
-                //Wait
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                //Delete all contacts
+                //Borramos todos los contactos de la agenda
                 contacts.removeAllContacts();
 
-                //View contacts data
 
-                //Pasarle los parametros from, to para mostrar solo esos contactos??????
+                //Mostramos los contactos
                 Intent myIntent = new Intent(MainActivity.this, ViewContacts.class);
                 myIntent.putExtra("from", editTextFrom.getText().toString());
                 myIntent.putExtra("to", editTextTo.getText().toString());
-           //     progressDialog.cancel();
+
+                //Iniciamos la activity donde se muestran los contactos escaneados
                 MainActivity.this.startActivity(myIntent);
 
             }
         }).start();
 
     }
-    public void scan(View v){
-
-        progressDialog.show();
-        setupThread();
-
-    }
-
 
     /**
      * Copia los contactos de la DB whatsapp a la Spy y sus eventos si es necesario
@@ -262,7 +216,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
 
-            //Wait
+            //le damos tiempo para que el sistema pueda copiar la base de datos de una ruta a otra
             try {
                 Thread.sleep(3000);
             } catch (InterruptedException e) {
@@ -279,18 +233,19 @@ public class MainActivity extends AppCompatActivity {
         DataBaseSpy dataBaseSpy = new DataBaseSpy(getApplicationContext());
         dataBaseSpy.getWritableDatabase();
 
-        ArrayList<Contact> lista;
+        //Lista de contactos de la base de datos de whatsapp
+        ArrayList<Contact> lista = dataBaseWa.readContact(from,to);
 
-
-        lista = dataBaseWa.readContact(from,to);
+        //Guardamos los contactos y sus eventos en nuestra base de datos
         dataBaseSpy.writeContact(lista);
 
+        /*
         try {
             Thread.sleep(3000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
+        */
         dataBaseSpy.close();
         dataBaseWa.close();
     }

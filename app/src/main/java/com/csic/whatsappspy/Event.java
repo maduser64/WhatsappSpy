@@ -6,6 +6,10 @@ import java.util.Date;
 
 /**
  * Created by josel on 16/11/2016.
+ *
+ * Representa un evento de un contacto
+ * puede ser o una foto, el nombre del fichero de la foto.
+ * puede ser un estado, el estado del contacto
  */
 public class Event implements Serializable {
 
@@ -43,6 +47,9 @@ public class Event implements Serializable {
         return this.date;
     }
 
+    /*
+        fecha del evento en formato Date
+     */
     public Date date() {
 
         if (type.equals(Event.TYPE_STATE))
@@ -68,6 +75,10 @@ public class Event implements Serializable {
         this.event = event;
     }
 
+
+    /*
+        Compara dos eventos por su fecha
+     */
     public static Comparator<Event> eventDateComparator = new Comparator<Event>() {
 
         @Override
