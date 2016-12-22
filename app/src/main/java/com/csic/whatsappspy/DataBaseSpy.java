@@ -355,27 +355,28 @@ public class DataBaseSpy extends SQLiteOpenHelper {
      */
     private void copyPhoto(long phone,String photoSpy){
 
-       // final String PREF_ESP = "34";
         final String SUF = "@s.whatsapp.net.j";
 
         String photoWa = phone + SUF ;
+
+
         try {
-            Process p = Runtime.getRuntime().exec(new String[]{"su","-c","cp -r /data/data/com.whatsapp/files/Avatars/"+ photoWa +" /data/data/com.csic.whatsappspy/cache/" + photoSpy});
-            p = Runtime.getRuntime().exec(new String[]{"su","-c","chmod -R 777 /data/data/com.csic.whatsappspy/cache/" + photoSpy});
-            Log.i("info","Copied " + PATH_AVATARS + photoSpy );
+            Process p = Runtime.getRuntime().exec(new String[]{"su", "-c", "cp -r /data/data/com.whatsapp/files/Avatars/" + photoWa + " /data/data/com.csic.whatsappspy/cache/" + photoSpy});
+            //Le damos tiempo a que la copie
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            p = Runtime.getRuntime().exec(new String[]{"su", "-c", "chmod -R 777 /data/data/com.csic.whatsappspy/cache/" + photoSpy});
+            Log.i("info", "Copied " + PATH_AVATARS + photoSpy);
 
 
         } catch (IOException e) {
             e.printStackTrace();
-            Log.i("info", "No se ha copiado " + PATH_AVATARS + photoSpy );
+            Log.i("info", "No se ha copiado " + PATH_AVATARS + photoSpy);
         }
 
-        //Le damos tiempo a que la copie
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
     /*
@@ -383,7 +384,7 @@ public class DataBaseSpy extends SQLiteOpenHelper {
      */
     private  void  deletePhoto(long phone, int numPhonto) {
         try {
-            Process p = Runtime.getRuntime().exec(new String[]{"su","-c", "rm " + PATH_AVATARS + phone + "_" + numPhonto});
+            Process p = Runtime.getRuntime().exec(new String[]{"su","-c", "rm " + PATH_AVATARS + phone + "_" + numPhonto + "png"});
             Log.i("info", "borrando " + PATH_AVATARS + phone + "_" + numPhonto);
         }catch (IOException e) {e.printStackTrace();}
     }
