@@ -3,4 +3,6 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="corner_radius_cardview">4dp</dimen>
+    <dimen name="fastscroller_handle_corner">5dp</dimen>
+    <dimen name="fastscroller_handle_size">5dp</dimen>
 </resources>

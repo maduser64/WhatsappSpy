@@ -382,10 +382,10 @@ public class DataBaseSpy extends SQLiteOpenHelper {
     /*
         Borra una foto de un contacto en nuestro sistema de ficheros
      */
-    private  void  deletePhoto(long phone, int numPhonto) {
+    private  void  deletePhoto(long phone, int numPhoto) {
         try {
-            Process p = Runtime.getRuntime().exec(new String[]{"su","-c", "rm " + PATH_AVATARS + phone + "_" + numPhonto + "png"});
-            Log.i("info", "borrando " + PATH_AVATARS + phone + "_" + numPhonto);
+            Process p = Runtime.getRuntime().exec(new String[]{"su","-c", "rm " + PATH_AVATARS + phone + "_" + numPhoto + ".png"});
+            Log.i("info", "borrando " + PATH_AVATARS + phone + "_" + numPhoto + ".png");
         }catch (IOException e) {e.printStackTrace();}
     }
 

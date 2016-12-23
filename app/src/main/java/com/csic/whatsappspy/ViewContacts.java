@@ -10,7 +10,7 @@ import java.util.ArrayList;
 
 
 /*
-    Muestra una lista de contactos escaneados
+    Muestra la lista de contactos escaneados
  */
 public class ViewContacts extends AppCompatActivity {
 
@@ -36,6 +36,7 @@ public class ViewContacts extends AppCompatActivity {
             LinearLayoutManager llm = new LinearLayoutManager(this);
             llm.setOrientation(LinearLayoutManager.VERTICAL);
             contactsList.setLayoutManager(llm);
+
 
             inicializar(from, to);
             initializeAdapter();

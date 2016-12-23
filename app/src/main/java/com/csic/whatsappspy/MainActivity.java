@@ -16,8 +16,9 @@ import android.widget.Toast;
 import java.io.IOException;
 import java.util.ArrayList;
 
-/*
-    Activity principal de la aplicacion
+/**
+ * @author Marta Mojica López
+ * @author Jose Luis Rodrigo Oliva
  */
 public class MainActivity extends AppCompatActivity {
 
@@ -86,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
 
         progressDialog = new ProgressDialog(MainActivity.this);
         progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        progressDialog.setMessage("Conectando ...");
+        progressDialog.setMessage("Loading ...");
         progressDialog.setMax(100);
         progressDialog.setProgress(0);
         progressDialog.setCancelable(false);
@@ -109,8 +110,6 @@ public class MainActivity extends AppCompatActivity {
         inicializacion del hilo para escanear los contactos
      */
     private void startScan(){
-
-
 
         new Thread(new Runnable() {
 
@@ -146,8 +145,8 @@ public class MainActivity extends AppCompatActivity {
                 /*
                     Reset whatsapp APP
                  */
-                //ActivityManager am = (ActivityManager)getSystemService(Context.ACTIVITY_SERVICE);
-                //am.restartPackage("com.whatsapp");
+                ActivityManager am = (ActivityManager)getSystemService(Context.ACTIVITY_SERVICE);
+                am.restartPackage("com.whatsapp");
 
                 //Esperamos a que el reset se realice completamenet
                 try {
@@ -155,6 +154,7 @@ public class MainActivity extends AppCompatActivity {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
+
 
                 //Lanzamos whatsapp para poder descargar las fotos de los contactos escaneados
                 Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.whatsapp");
@@ -173,6 +173,7 @@ public class MainActivity extends AppCompatActivity {
      */
     public void viewContacts(View v){
 
+        progressDialog.show();
         new Thread(new Runnable() {
 
             @Override
@@ -196,14 +197,14 @@ public class MainActivity extends AppCompatActivity {
 
                 //Borramos todos los contactos de la agenda
                 Log.i("info","Borrando contactos ...");
-                contacts.removeAllContacts();
+                contacts.removeAllContacts(puenteProgress);
                 Log.i("info","... todos los contactos han sido borrados");
 
                 //Mostramos los contactos
                 Intent myIntent = new Intent(MainActivity.this, ViewContacts.class);
                 myIntent.putExtra("from", editTextFrom.getText().toString());
                 myIntent.putExtra("to", editTextTo.getText().toString());
-
+                progressDialog.cancel();
                 //Iniciamos la activity donde se muestran los contactos escaneados
                 MainActivity.this.startActivity(myIntent);
 
@@ -221,16 +222,14 @@ public class MainActivity extends AppCompatActivity {
             try {
                 Process p = Runtime.getRuntime().exec(new String[]{"su","-c","cp -r /data/data/com.whatsapp/databases/wa.db /data/data/com.csic.whatsappspy/databases/wa.db"});
 
-                p = Runtime.getRuntime().exec(new String[]{"su","-c","chmod 777 /data/data/com.csic.whatsappspy/databases/wa.db"});
+                //le damos tiempo para que el sistema pueda copiar la base de datos de una ruta a otra
 
+                Thread.sleep(2000);
+
+                p = Runtime.getRuntime().exec(new String[]{"su","-c","chmod 777 /data/data/com.csic.whatsappspy/databases/wa.db"});
+                Thread.sleep(10);
             } catch (IOException e) {
                 e.printStackTrace();
-            }
-
-
-            //le damos tiempo para que el sistema pueda copiar la base de datos de una ruta a otra
-            try {
-                Thread.sleep(3000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
