@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">WhatsappSpy</string>
+    <string name="fastscroller_track">track</string>
 </resources>

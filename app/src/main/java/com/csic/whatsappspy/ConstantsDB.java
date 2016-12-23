@@ -2,6 +2,8 @@ package com.csic.whatsappspy;
 
 /**
  * Created by martam on 16/11/2016.
+ *
+ * Contantes para el manejo de las bases de datos
  */
 public class ConstantsDB {
 

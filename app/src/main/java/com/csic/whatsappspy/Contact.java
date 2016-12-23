@@ -7,6 +7,8 @@ import java.util.Collections;
 
 /**
  * Created by josel on 16/11/2016.
+ *
+ * Representa un contacto con su lista de fotos y eventos publicados
  */
 public class Contact implements Serializable {
 
@@ -21,8 +23,8 @@ public class Contact implements Serializable {
         this.name = name;
         this.phone = phone;
 
-        photos = new ArrayList<Event>();
-        status = new ArrayList<Event>();
+        photos = new ArrayList();
+        status = new ArrayList();
     }
 
     //getters
@@ -117,8 +119,14 @@ public class Contact implements Serializable {
     }
 
 
-    public ArrayList<Event> sortEventsByDate( ArrayList<Event> events ){
+    /*
+        Lista ordenada por fecha de todos los eventos  del contacto, fotos y estados
+     */
+    public ArrayList<Event> sortEventsByDate( ){
 
+        ArrayList<Event> events = new ArrayList<>();
+        events.addAll(photos);
+        events.addAll(status);
         Collections.sort(events, Event.eventDateComparator );
 
         return events;

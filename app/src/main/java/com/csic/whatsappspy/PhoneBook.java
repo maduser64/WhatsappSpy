@@ -3,10 +3,13 @@ package com.csic.whatsappspy;
 import java.util.ArrayList;
 import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.OperationApplicationException;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Message;
 import android.os.RemoteException;
 import android.provider.ContactsContract;
 import android.util.Log;
@@ -51,13 +54,17 @@ public class PhoneBook {
         return false;
     }
 
-    public void removeAllContacts(){
+    public void removeAllContacts(Handler puenteProgress){
         ContentResolver contentResolver = context.getContentResolver();
         Cursor cursor = contentResolver.query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
         while (cursor.moveToNext()) {
             String lookupKey = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.LOOKUP_KEY));
             Uri uri = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_LOOKUP_URI, lookupKey);
             contentResolver.delete(uri, null, null);
+
+            Message msg = new Message();
+            msg.obj = 10;
+            puenteProgress.sendMessage(msg);
         }
     }
 

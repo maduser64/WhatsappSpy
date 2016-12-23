@@ -13,14 +13,12 @@ import java.io.File;
 import java.util.ArrayList;
 
 /**
- * Created by martam on 01/12/2016.
  */
 public class DetailsAdapter extends RecyclerView.Adapter<DetailsAdapter.DetailsViewHolder>{
 
     //Contact list
     private ArrayList<Event> events;
 
-    //private final String PATH_DATA_BASE = "/mnt/sdcard/Download/com.whatsapp/files/Avatars/";
     private String PATH_DATA_BASE = "/data/data/com.csic.whatsappspy/cache/";
 
 
@@ -56,7 +54,7 @@ public class DetailsAdapter extends RecyclerView.Adapter<DetailsAdapter.DetailsV
         }
 
         if (event.date() != null && event.getDate() != 0 && event.getDate() != -1)
-        detailsViewHolder.time_stamp.setText(event.date() + "");
+        detailsViewHolder.time_stamp.setText(event.date().toString());
 
         else{
             detailsViewHolder.time_stamp.setText("Unknown"); // a veces la base de datos se copia mal y hay foto pero su ts es null, aun asi me parece importante reflejarlo. Lo controlamos antes...
@@ -66,7 +64,6 @@ public class DetailsAdapter extends RecyclerView.Adapter<DetailsAdapter.DetailsV
 
     /**
      * Num of elements
-     * @return
      */
     @Override
     public int getItemCount() {

@@ -12,10 +12,15 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 
+/*
+    Controla la vista de los detalles del contacto, se encarga del manejo de la recyclerView para mostrar
+    los eventos del contacto ordenados por fecha
+ */
 public class ViewDetails extends AppCompatActivity {
 
     private final String PATH_DATA_BASE = "/storage/sdcard0/Download/com.whatsapp/files/Avatars/";
     private RecyclerView eventsList;
+
     private TextView textName;
     private TextView textPhone;
     private ArrayList<Event> events;
@@ -25,12 +30,11 @@ public class ViewDetails extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_details);
 
-        events = new ArrayList<Event>();
+        events = new ArrayList<>();
         textName = (TextView) findViewById(R.id.TextNumber);
         Bundle b = getIntent().getExtras();
-        Contact contact = null; // or other values
         if (b != null) {
-            contact = (Contact) b.get("Contact");
+            Contact contact = (Contact) b.get("Contact");
 
 
            textName.setText(contact.getPhone() + " changes log");
@@ -40,20 +44,13 @@ public class ViewDetails extends AppCompatActivity {
             llm.setOrientation(LinearLayoutManager.VERTICAL);
             eventsList.setLayoutManager(llm);
 
-            inicializar(contact);
-            initializeAdapter();
+            initializeAdapter(contact);
         }
     }
 
+    private void initializeAdapter(Contact contact) {
 
-    private void initializeAdapter() {
-        //ContactAdapter contactAdapter = new ContactAdapter(contactArrayList);
-        eventsList.setAdapter(new DetailsAdapter(this, events));
+        eventsList.setAdapter(new DetailsAdapter(this, contact.sortEventsByDate()));
     }
 
-    private void inicializar(Contact contact) {
-        events.addAll(contact.getStatus());
-        events.addAll(contact.getPhotos());
-        contact.sortEventsByDate(events);
-    }
 }
